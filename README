@@ -1,0 +1,235 @@
+README Tema1_PP Mateescu Cristina-Ramona 321CB
+
+SUBPUNCTUL a)
+
+	Definim tipul de date ClassState : 
+		
+		- utilizam un Map cu cheia de tip InstrType ( Func sau Var )
+                                  si valoarea de tip lista de lista de String
+
+		- valoarea din Map are urmatoarea semnificatie : o variabila / o functie
+ 		este reprezentata  prin  o  lista  String-uri  ce  reprezinta  campurile
+ 		ex :  o  variabila  are  un  simbol  pentru nume si un simbol pentru tip
+
+		- Map-ul avand cheia InstrType - la o  cheie se  va afla  intreaga lista
+		de variabile / functii, de unde rezulta tipul [[String]]
+
+
+	initEmptyClass :
+
+		- pentru a construi un container gol pentru o clasa folosim functia tipului 
+		  Map : Map.empty si constructorul de tip
+
+	insertIntoClass :
+		
+		- primeste un ClassState un tip de instructiune si lista de valori ascoiata
+		  variabilei/functiei care se insereaza
+
+		- inserarea se face prin concatenarea listei la vechea valoare asociata cheii 
+		  Func/Var, folosind functiia  Map.insertWith  ( care primeste functia (++) )
+
+	getValues :
+		
+		- primeste un ClassState si un tip de instructiune si returneaza toate variabilele 
+ 		  sau funcțiile - ele reprezinta chiar valoarea asociata cheii Func/Var
+		
+		- folosim functia Map.findWithDefault pentru a returna o lista vida in cazul in care
+		  nu exista nicio valoare asociata cheii primite
+
+
+SUBPUNCTUL b)
+
+	
+	Definim tipul de date Program : 
+		
+		- Utilizam un Map cu cheia de tip String - cu semnificatia : numele unei clase
+				     valoarea de tip Pereche : un ClassState si un String  cu 
+		semnificatia : numele clasei parinte
+		
+		- P ( Map nume_clasa ( ClassState, nume_parinte ) )
+
+
+	initEmptyProgram : 
+		
+		- Returneaza un container pentru un Program gol
+		- Containerul va contine (implicit) clasa Global
+		- Folosim conventia : parintele clasei Global este tot clasa Global
+		- Pentru Clasa Global folosim functia definita la punctul a) : initEmptyClass
+		  si setam cheia : numele ("Global") si valoarea ( clasa, nume_parinte : "Global" )
+
+
+	getVars :
+
+		- Returneaza toate numele variabilelor din program
+		- Variabilele se afla in clasa Global
+		- cautam clasa Global in Map folosind cheia "Global" - clasa va fi primul membru al perechii
+		- pentru a returna variabilele folosim un apel al functiei getValues
+
+
+	getClasses :
+	
+		- Returneaza toate clasele din program
+		- Clasele reprezinta chei in Map
+		- Returnam cheile folosind Map.keys
+
+
+	getParentClass :
+		
+		- Primeste o clasa si un program si returneaza clasa parinte
+		- Se cauta in map folosind clasa primita ca argument, valoarea returnata va fi un 
+		  tuplu (ClassState , parinte ) ; se returneaza parintele (snd) 
+
+	
+	getFuncsForClass : 
+	
+		- Primeste o clasa si un program si returneaza lista de functii din clasa primita
+		- se cauta clasa in program folosind cheia : numele, apoi se utilizeaza un apel al
+		al functiei getValues pentru ClassState-ul asociat clasei, cu tipul instructiunii: Func
+
+	
+	
+	Definim tipul de date Instruction:
+
+		- Cu 4 constructori
+			Clasa nume_clasa ( ClassState, nume_parinte )
+			Variabila [nume_variabila, tip_variabila]
+			Functie [ clasa, nume, tip_returnat, lista_parametri ]
+			Expresie nume_variabila expresie
+
+
+	parse :
+	
+		- Se sparge inputul in linii, folosind functia "lines"
+		- Ignoram liniile goale
+		- fiecare linie se parseaza folosind functia auxiliara parseLine
+
+	
+	interpret : 
+
+		- se face in functie de tipul instructiunii
+
+		- Clasa :     se insereaza in map la cheia : numele clasei, valoarea : 
+		perechea formata din ClassState si parinte
+			      daca parintele nu exista, el se seteaza ca "Global"
+
+		- Variabila : variabila este inserata in clasa Global
+			      se verifica daca tipul variabilei este valid
+
+		- Functie :   functia este inserata in clasa din care face parte daca se respecta
+		conditiile : 
+				Clasa din care face parte exista
+				Tipul de return si tipurile parametrilor sunt clase existente in program
+				Instructiunea respecta formatul
+			      pentru a verifica tipurile parametrilor se foloseste o functie auxiliara : isParam
+
+		*bonus 
+		- Expresie : se adauga o noua variabila in program, avand acelasi tip cu tipul expresiei si 
+		  cu simbolul dat
+			     noua variabila este adaugata in program doar daca inferenta de tip a expresiei
+		  reuseste; folosim apeluri ale functiei "infer" 
+			     daca inferenta de tip returneaza un "Nothing" , programul ramane neschimbat
+
+
+
+Functii auxiliare b)
+
+
+		getClass : returneaza ClassState-ul asociat unui nume, din program; Se cauta in map folosind
+		           cheia : numele si ClassState-ul reprezinta primul membru din Tuplu
+
+		split : primeste un String si un caracter si returneaza o lista de String-uri, facand split
+			dupa acel caracter
+
+		
+		isParam : primeste o lista de String-uri (Ce semnifica simbolurile tipurilor parametrilor unei 
+			 functii) si un Program
+			 verifica daca tipurile sunt clase existente in program - returnand True/False
+
+
+		parseLine : primeste o linie din program si returneaza o instructiune rezultata in urma parsarii
+			    parsarea se realizeaza in functie de tipul instructiunii, adica in functie de cuvantul
+			    cheie de la inceput
+			    pentru fiecare tip de instructiune exista o functie auxiliara care realizeaza parsarea
+
+
+		parseClass : primeste o lista de campuri ce reprezinta o instructiune pentru declararea unei clase si 
+			     returneaza o instructiune
+			     din lista se extrag : numele clasei si numele parintelui (Daca exista ) si se intoarce 
+			     instructiunea corespunzatoare
+
+
+		parseVar : primeste o linie ce contine o instructiune pentru declararea unei variabile noi si returneaza
+			   o instructiune
+			   se parseaza prin split dupa "=", din partea din stanga se extrage numele variabilei, din
+			   partea din dreapta se extrage tipul
+		
+
+		parseFunc : primeste o linie ce contine o instructiune pentru declararea unei functii noi si returneaza
+			    o instructiune
+			    pentru a forma instructiunea ce contine o lista de String-uri, se extrag campurile prin 
+			    split dupa ':', ')' '(' si ' ' si se concateneaza in ordinea corecta 
+
+	
+
+		
+SUBPUNCTUL c)	
+
+		infer : inferenta de tip de realizeaza in functie de tipul expresiei:
+
+			- Variabila : se cauta variabila in clasa Global dupa nume, daca ea nu exista atunci 
+			inferenta de tip esueaza, altfel i se va returna tipul
+			- Variabilele sunt pastrate sub forma unei liste : [ nume, tip ]
+		 	
+			- apel de functie : se verifica daca apelul este valid : daca variabila exista, daca
+			  daca functia exista, daca parametrii sunt valizi ( au acelasi tip cu tipul expresiilor )
+			- daca apelul este valid, se returneaza tipul de return al functiei
+			- pentru aceste verificari se folosesc cateva functii auxiliare :	
+
+Functii auxiliare c)
+		
+		
+		validCall : - primeste un String ce reprezinta apelul unei functii, o lista de expresii, un program
+			    si returneaza un tip de return
+			    - functia verifica daca semnatura functiei se potriveste cu tipurile parametrilor - ce sunt
+			    expresii	
+			    - pentru fiecare expresie se realizeaza recursiv inferenta de tip pentru a afla tipul
+			    - daca tipurile corespund, atunci functia intoarce tipul de return al functiei primite ca parametru
+		
+
+		validFuncs : - primeste o lista de functii si intoarce tipul de return al primei functii valide 
+			     (valida in sensul apelului functiei validCall) 
+			     - daca nu exista nicio functie valida, se intoarce Nothing
+		
+
+		getFunc : - primeste o lista de functii si un nume si returneaza o lista a tuturor functiilor cu numele
+			    primit ca parametru
+
+		searchF : - primeste un nume de functie, un nume de clasa si un program si returneaza o lista a tuturor
+			    functiilor cu acest nume din clasa sau de pe lantul de mostenire
+			  - se folosesc apeluri ale functiei getFunc
+			  - se merge pe lantul de mostenire si se concateneaza listele intoarse de apelul functiei getFunc
+		  		  
+
+BONUS
+
+		parseExpr : - parseaza o linie ce contine o expresie atribuita unei variabile
+			    - Se sparge expresia in campuri si se returneaza o instructiune 
+			    - pentru a sparge in campuri se face split dupa '=', '.', '(' 
+			    - parametrii se parseaza folosind functia parseParamsE:
+			    
+
+		parseParamsE : - Primeste un apel de functie  de forma var.func ( expr, expr, .. )
+			       - Intoarce o lista de expresii parsand parametrii
+			       - Parsarea se face astfel : se extrage lista de parametrii, se face split
+			       dupa ',' 
+			       - din cauza apelurilor imbricate, split-ul dupa ',' nu o sa returneze 
+			       o lista corecta de parametri; de aceea folosim functia splitParams pentru a
+			       a uni String-urile ce fac parte din aceeasi expresie astfel :
+
+		splitParams : - Se verifica un parametru al listei si daca numarul de paranteze '(' este
+				acelasi cu numarul de paranteze ')' inseamna ca parametrul este corect;
+			      - altfel : se concateneaza parametrul cu urmatorul element din lista si se face
+				verificarea recursiv pe acesta
+			      - functia va returna lista corecta de parametri - ce pot fi dati mai departe in 
+				recursivitate pentru a fi parsati la randul lor in expresii
+
